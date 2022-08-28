@@ -9,6 +9,7 @@ const commands = [
 	new SlashCommandBuilder().setName('mmm').setDescription('Replies with mmm sentence!'),
 	new SlashCommandBuilder().setName('server').setDescription('Replies with server info!'),
 	new SlashCommandBuilder().setName('me').setDescription('Replies with user info!'),
+	new SlashCommandBuilder().setName('tweet').setDescription('Set tweet channel')
 ]
 	.map(command => command.toJSON());
 
