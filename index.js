@@ -52,6 +52,7 @@ client.on('interactionCreate', async interaction => {
 	const { commandName } = interaction;
 
 	if (commandName === 'tweet') {
+		if (interaction.user.id === interaction.guild.ownerId){
 		let channelSelectorSelect = new Discord.ActionRowBuilder()
 		.addComponents(
 			new Discord.SelectMenuBuilder()
@@ -76,6 +77,10 @@ client.on('interactionCreate', async interaction => {
 	})
 		await interaction.reply({ content: 'Scegli un canale!', components: [channelSelectorSelect] });
 	}
+	else{
+		await interaction.reply({content: 'Non puoi farlo!'});
+	} 
+		}
 	}
 	)
 
@@ -142,7 +147,7 @@ const startStream = async () =>{
 
 	stream.on(Twitter.ETwitterStreamEvent.Data, async (tweet) => {
 		console.log(tweet)
-		const twitterMessage = `Abbiamo appena twittato: https://twitter.com/Every3Minutes/status/${tweet.data.id}`
+		const twitterMessage = `Abbiamo appena twittato: https://twitter.com/MilanDiscordC/status/${tweet.data.id}`
 		try {
 			client.channels.cache.get(target).send(twitterMessage);
 		}
