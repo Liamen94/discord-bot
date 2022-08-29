@@ -7,8 +7,8 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
-const token = dotenv.token
-const twitterBearerToken = dotenv.twitterBearerToken
+const token = process.env.token
+const twitterBearerToken = process.env.twitterBearerToken
 
 // Create a new client instance
 const client = new Discord.Client({ intents: [Discord.GatewayIntentBits.Guilds] });
