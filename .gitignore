@@ -1,5 +1,4 @@
 node_modules
 bot_token.txt
 config.json
-.gitignore
-.gitattributes
+.env

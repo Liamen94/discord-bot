@@ -2,7 +2,13 @@
 const Discord = require('discord.js');
 const Twitter = require('twitter-api-v2')
 const Sequelize = require('sequelize');
-const { token, streamChannel, twitterBearerToken } = require('./config.json');
+const dotenv = require('dotenv');
+// const { token, twitterBearerToken } = require('./config.json');
+
+dotenv.config();
+
+const token = dotenv.token
+const twitterBearerToken = dotenv.twitterBearerToken
 
 // Create a new client instance
 const client = new Discord.Client({ intents: [Discord.GatewayIntentBits.Guilds] });
