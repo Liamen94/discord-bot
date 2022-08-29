@@ -109,13 +109,11 @@ client.login(token);
 // Create a stream to follow tweets
 
 
-twitterClient.v2.updateStreamRules(
-		{
-		  delete: 
-			{ids: ['1564305765434810371'], },
-		  
-		}
-	  );
+// twitterClient.v2.updateStreamRules(
+// 		{
+// 		  				  
+// 		}
+// 	  );
 
 
 const startStream = async () =>{
