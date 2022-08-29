@@ -123,7 +123,7 @@ const startStream = async () =>{
 	const targetData = await Channels.findOne();
 	console.log(targetData)
 		try{
-			const target = targetData.channel_id	
+			const target = targetData.dataValues.channel_id	
 		}
 		catch{
 			console.log('cant parse id')
