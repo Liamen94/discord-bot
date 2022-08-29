@@ -1,22 +1,42 @@
 // Require the necessary files
 const Discord = require('discord.js');
-const Twitter = require('twitter-api-sdk')
+const Twitter = require('twitter-api-v2')
+const Sequelize = require('sequelize');
 const { token, streamChannel, twitterBearerToken } = require('./config.json');
 
 // Create a new client instance
 const client = new Discord.Client({ intents: [Discord.GatewayIntentBits.Guilds] });
 
 // Create a new Twitter client
-const twitterClient = new Twitter.Client(twitterBearerToken)
+const twitterClient = new Twitter.TwitterApi(twitterBearerToken)
 
-let Channels
+const sequelize = new Sequelize('database', 'user', 'password', {
+	host: 'localhost',
+	dialect: 'sqlite',
+	logging: false,
+	// SQLite only
+	storage: 'database.sqlite',
+});
+
+const Channels = sequelize.define('channels', {
+	name: {
+		type: Sequelize.STRING,
+		unique: true,
+	},
+	description: Sequelize.TEXT,
+	channel_id: Sequelize.STRING,
+});
+
+
+let dest
+let stream
 
 // When the client is ready, run this code (only once)
-client.once('ready', () => {
+client.once('ready', async () => {
 	console.log('Ready!');
-	Channels = client.channels.cache.map(channel => channel.id);
-    console.log(Channels)
+	await Channels.sync()
 });
+
 
 
 // Interactions
@@ -25,17 +45,7 @@ client.on('interactionCreate', async interaction => {
 
 	const { commandName } = interaction;
 
-	if (commandName === 'dedo') {
-		await interaction.reply(`Vero.\n-Dedo`);
-	} else if (commandName === 'mdc') {
-		await interaction.reply('Server sul Milan');
-	} else if (commandName === 'mmm') {
-		await interaction.reply('Compriamo un 2009 congolese!');
-	} else if (commandName === 'server') {
-		await interaction.reply(`Server name: ${interaction.guild.name}\nTotal members: ${interaction.guild.memberCount}`);
-	} else if (commandName === 'me') {
-		await interaction.reply(`Your tag: ${interaction.user.tag}\nYour id: ${interaction.user.id}`);
-	}else if (interaction.commandName === 'tweet') {
+	if (commandName === 'tweet') {
 		let channelSelectorSelect = new Discord.ActionRowBuilder()
 		.addComponents(
 			new Discord.SelectMenuBuilder()
@@ -50,7 +60,7 @@ client.on('interactionCreate', async interaction => {
 	client.channels.cache.forEach(channel => {
 	
 			// add channel to the select menu - the below line was changed
-			if (channel.type == 0){
+			if (channel.type == 0 && channel.guildId == interaction.guild.id){
 			channelSelectorSelect.components[0].addOptions([{
 				label: `${channel.name}`,
 				description: `${channel.name}`,
@@ -58,7 +68,7 @@ client.on('interactionCreate', async interaction => {
 			}]);}
 	
 	})
-		await interaction.reply({ content: 'Ok!', components: [channelSelectorSelect] });
+		await interaction.reply({ content: 'Scegli un canale!', components: [channelSelectorSelect] });
 	}
 	}
 	)
@@ -69,11 +79,22 @@ client.on('interactionCreate', async interaction => {
 			await interaction.reply({content: 'Annullato'})
 		}
 		else{
-			const dest = interaction.values.toString()
+			dest = interaction.values.toString()
+			try {
+				const target = await Channels.create({ name:'Target', description: `target channel`, channel_id: dest, });
+				console.log("entry added")
+			}
+			catch{
+				const affectedRows = await Channels.update({ channel_id: dest }, { where: { name: 'Target' } });
+				console.log("db updated");				
+			}
+			try{stream.destroy()}
+			catch{console.log("no active stream")}
 			await interaction.reply({content: 'Canale scelto.'})
-			tweetStream(dest)
+			startStream()
+			}		
 		}
-	});
+	);
 
 // Login to Discord with your client's token
 client.login(token);
@@ -81,30 +102,50 @@ client.login(token);
 
 // Create a stream to follow tweets
 
-const tweetStream = async (dest) => {
-	console.log(dest)
-	await twitterClient.tweets.addOrDeleteRules(
+
+twitterClient.v2.updateStreamRules(
 		{
 		  add: [
-			{ value: "from:Every3Minutes -(is:retweet OR is:reply)", tag: "every3minutes" },
+			{ value: "from:MilanDiscordC -(is:retweet OR is:reply)", tag: "mdc" },
 		  ]
 		}
 	  );
-	  const rules = await twitterClient.tweets.getRules();
-// const stream =  twitterClient.tweets.sampleStream('statuses/filter', {
-// 	follow: '2899773086', // @Every3Minutes, specify whichever Twitter ID you want to follow
-//   });
-const stream =  twitterClient.tweets.searchStream({
-	"tweet.fields": ["id"]
-});
 
 
- for await (const tweet of stream){
-	console.log(tweet)
-	const twitterMessage = `@Every3Minutes tweeted this: https://twitter.com/Every3Minutes/status/${tweet.data.id}`
-	client.channels.cache.get(dest).send(twitterMessage);
-  };
+const startStream = async () =>{
+	try{
+	const targetData = await Channels.findOne();
+	console.log(targetData)
+		try{
+			const target = targetData.channel_id	
+		}
+		catch{
+			console.log('cant parse id')
+		}
+	}
+	catch{
+		console.log('no channel in the db')
+	}
+	const rules = await twitterClient.v2.streamRules();
+	try {
+	console.log(rules.data.map(rule => rule.id));
+	}
+	catch{
+		console.log("No rules setted")
+	}
+	stream = await  twitterClient.v2.searchStream({"tweet.fields": ["id"]})
+
+	stream.on(Twitter.ETwitterStreamEvent.Data, async (tweet) => {
+		console.log(tweet)
+		const twitterMessage = `Abbiamo appena twittato: https://twitter.com/Every3Minutes/status/${tweet.data.id}`
+		try {
+			client.channels.cache.get(target).send(twitterMessage);
+		}
+		catch {
+			console.log('channel not set or invalid')
+		}
+})
+
 }
 
-
-// tweetStream();
+startStream()
