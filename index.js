@@ -33,7 +33,7 @@ const Channels = sequelize.define('channels', {
 	channel_id: Sequelize.STRING,
 });
 
-
+let target
 let dest
 let stream
 
@@ -111,9 +111,9 @@ client.login(token);
 
 twitterClient.v2.updateStreamRules(
 		{
-		  add: [
-			{ value: "from:MilanDiscordC -(is:retweet OR is:reply)", tag: "mdc" },
-		  ]
+		  delete: 
+			{ids: ['1564305765434810371'], },
+		  
 		}
 	  );
 
@@ -123,7 +123,7 @@ const startStream = async () =>{
 	const targetData = await Channels.findOne();
 	console.log(targetData)
 		try{
-			const target = targetData.dataValues.channel_id.toString()
+			target = targetData.dataValues.channel_id.toString()
 			console.log(target)
 		}
 		catch{
@@ -148,8 +148,9 @@ const startStream = async () =>{
 		try {
 			client.channels.cache.get(target).send(twitterMessage);
 		}
-		catch {
+		catch(e) {
 			console.log('channel not set or invalid')
+			console.log(e)
 		}
 })
 
