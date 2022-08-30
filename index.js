@@ -143,7 +143,7 @@ const startStream = async () =>{
 	console.log(targetData)
 		try{
 			target = targetData.dataValues.channel_id.toString()
-			console.log(target)
+			// console.log(target)
 		}
 		catch{
 			console.log('cant parse id')
@@ -161,13 +161,14 @@ const startStream = async () =>{
 	}
 	stream = await  twitterClient.v2.searchStream({"tweet.fields": ["id"]})
 
-	// const temporary = '990876793974161448'
+	const temporary = '990876793974161448'
 
 	stream.on(Twitter.ETwitterStreamEvent.Data, async (tweet) => {
 		console.log(tweet)
 		const twitterMessage = `Abbiamo appena twittato: https://twitter.com/MilanDiscordC/status/${tweet.data.id}`
 		try {
-			client.channels.cache.get(target).send(twitterMessage);
+			client.channels.cache.get(temporary).send(twitterMessage);
+			console.log(client.channels.get(temporary))
 		}
 		catch(e) {
 			console.log('channel not set or invalid')
