@@ -114,12 +114,14 @@ client.login(token);
 // Create a stream to follow tweets
 
 
-// twitterClient.v2.updateStreamRules(
-// 		{
-// 		  				  
-// 		}
-// 	  );
+twitterClient.v2.updateStreamRules(
+	{
+	  add: [
+		{ value: "from:MilanDiscordC -(is:retweet OR is:reply)", tag: "mdc" },
+	  ]
 
+	}
+  );
 
 const startStream = async () =>{
 	try{
