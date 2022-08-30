@@ -53,35 +53,49 @@ client.on('interactionCreate', async interaction => {
 
 	if (commandName === 'tweet') {
 		if (interaction.user.id === interaction.guild.ownerId){
-		let channelSelectorSelect = new Discord.ActionRowBuilder()
-		.addComponents(
-			new Discord.SelectMenuBuilder()
-			.setCustomId('select-tweet-channel')
-			.setPlaceholder('Nothing selected')
-			.addOptions([{
-				label: `Cancel`,
-				description: 'Stop.',
-				value: 'cancel',
-			}]))
+	// 	let channelSelectorSelect = new Discord.ActionRowBuilder()
+	// 	.addComponents(
+	// 		new Discord.SelectMenuBuilder()
+	// 		.setCustomId('select-tweet-channel')
+	// 		.setPlaceholder('Nothing selected')
+	// 		.addOptions([{
+	// 			label: `Cancel`,
+	// 			description: 'Stop.',
+	// 			value: 'cancel',
+	// 		}]))
 	
-	client.channels.cache.forEach(channel => {
+	// client.channels.cache.forEach(channel => {
 	
-			// add channel to the select menu - the below line was changed
-			if (channel.type == 0 && channel.guildId == interaction.guild.id){
-			channelSelectorSelect.components[0].addOptions([{
-				label: `${channel.name}`,
-				description: `${channel.name}`,
-				value: `${channel.id}`,
-			}]);}
+	// 		// add channel to the select menu - the below line was changed
+	// 		if (channel.type == 0 && channel.guildId == interaction.guild.id){
+	// 		channelSelectorSelect.components[0].addOptions([{
+	// 			label: `${channel.name}`,
+	// 			description: `${channel.name}`,
+	// 			value: `${channel.id}`,
+	// 		}]);}
+			dest = interaction.channelId.toString()
+			try {
+				const target = await Channels.create({ name:'Target', description: `target channel`, channel_id: dest, });
+				console.log("entry added")
+			}
+			catch{
+				const affectedRows = await Channels.update({ channel_id: dest }, { where: { name: 'Target' } });
+				console.log("db updated");				
+			}
+			try{stream.destroy()}
+			catch{console.log("no active stream")}
+			await interaction.reply({content: 'I tweet verranno postati qui.', ephemeral:true})
+			startStream()
+		
 	
-	})
-		await interaction.reply({ content: 'Scegli un canale!', components: [channelSelectorSelect] });
+	}
+		// await interaction.reply({ content: 'Scegli un canale!', components: [channelSelectorSelect] });
 	}
 	else{
 		await interaction.reply({content: 'Non puoi farlo!'});
 	} 
 		}
-	}
+	
 	)
 
 client.on('interactionCreate', async interaction => {
@@ -117,7 +131,7 @@ client.login(token);
 twitterClient.v2.updateStreamRules(
 	{
 	  add: [
-		{ value: "from:MilanDiscordC -(is:retweet OR is:reply)", tag: "mdc" },
+		{ value: "MilanDiscordC -(is:retweet OR is:reply)", tag: "mdc"		},
 	  ]
 
 	}
@@ -147,13 +161,13 @@ const startStream = async () =>{
 	}
 	stream = await  twitterClient.v2.searchStream({"tweet.fields": ["id"]})
 
-	const temporary = '990876793974161448'
+	// const temporary = '990876793974161448'
 
 	stream.on(Twitter.ETwitterStreamEvent.Data, async (tweet) => {
 		console.log(tweet)
 		const twitterMessage = `Abbiamo appena twittato: https://twitter.com/MilanDiscordC/status/${tweet.data.id}`
 		try {
-			client.channels.cache.get(temporary).send(twitterMessage);
+			client.channels.cache.get(target).send(twitterMessage);
 		}
 		catch(e) {
 			console.log('channel not set or invalid')
