@@ -1,0 +1,4 @@
+node_modules
+bot_token.txt
+config.json
+.env
