@@ -59,27 +59,6 @@ client.on('interactionCreate', async interaction => {
   const { commandName } = interaction;
 
   if (commandName === 'tweet') {
-    if (interaction.user.id === interaction.guild.ownerId) {
-      // 	let channelSelectorSelect = new Discord.ActionRowBuilder()
-      // 	.addComponents(
-      // 		new Discord.SelectMenuBuilder()
-      // 		.setCustomId('select-tweet-channel')
-      // 		.setPlaceholder('Nothing selected')
-      // 		.addOptions([{
-      // 			label: `Cancel`,
-      // 			description: 'Stop.',
-      // 			value: 'cancel',
-      // 		}]))
-
-      // client.channels.cache.forEach(channel => {
-
-      // 		// add channel to the select menu - the below line was changed
-      // 		if (channel.type == 0 && channel.guildId == interaction.guild.id){
-      // 		channelSelectorSelect.components[0].addOptions([{
-      // 			label: `${channel.name}`,
-      // 			description: `${channel.name}`,
-      // 			value: `${channel.id}`,
-      // 		}]);}
       dest = interaction.channelId.toString()
       try {
         const target = await Channels.create({ name: 'Target', description: `target channel`, channel_id: dest, });
@@ -96,7 +75,6 @@ client.on('interactionCreate', async interaction => {
 
 
     }
-    // await interaction.reply({ content: 'Scegli un canale!', components: [channelSelectorSelect] });
   }
   else {
     await interaction.reply({ content: 'Non puoi farlo!' });
